@@ -3,61 +3,53 @@ package com.example.get_request_by_standaz
 import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.get_request_by_standaz.adapter.MyAdapter
 import com.example.get_request_by_standaz.repository.Repository
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var viewModel: MainViewModel
+    private lateinit var recyclerView: RecyclerView
+    private val myAdapter by lazy {
+        MyAdapter()
+    }
 
-    private lateinit var userId:TextView
-    private lateinit var id:TextView
-    private lateinit var title:TextView
-    private lateinit var body_th:TextView
-
-    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        userId = findViewById(R.id.userId)
-        id = findViewById(R.id.id)
-        title = findViewById(R.id.title)
-        body_th = findViewById(R.id.body_th)
+        setupRecyclerview()
 
         val repository = Repository()
         val viewModelFactory = MainViewModelFactory(repository)
-
         viewModel = ViewModelProvider(this, viewModelFactory).get(MainViewModel::class.java)
-        viewModel.getPost()
 
+        viewModel.getCustomPosts(2, "id", "desc")
 
-    /*    viewModel.myResponse.observe(this, Observer {
-
-            userId.text = it.userId.toString()
-            id.text = it.id.toString()
-            title.text = it.title.toString()
-            body.text = it.body.toString()
-
-        })  */
-
-        // che3ck for error 404
-        viewModel.myResponse.observe(this, Observer { response ->
-
-
-            if (response.isSuccessful){
-                userId.text = response.body()!!.userId.toString()
-                id.text = response.body()!!.id.toString()
-                title.text = response.body()!!.title.toString()
-                body_th.text = response.body()!!.body.toString()
+        viewModel.myCustomPosts.observe(this, Observer { 
+            if (it.isSuccessful){
+                it.body()?.let { it1 -> myAdapter.setData(it1) }
             }else{
-                title.text =  " " + response.code().toString()
-                body_th.text =  " " + response.errorBody()!!.toString()
+                Toast.makeText(applicationContext, "error..${it.errorBody().toString()}", Toast.LENGTH_SHORT).show()
             }
-
         })
 
     }
+
+    private fun setupRecyclerview() {
+        recyclerView = findViewById(R.id.recyclerView)
+        recyclerView.adapter = myAdapter
+        recyclerView.layoutManager = LinearLayoutManager(this)
+    }
+
 }
