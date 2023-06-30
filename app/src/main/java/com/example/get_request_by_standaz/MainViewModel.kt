@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.get_request_by_standaz.modal.Post
 import com.example.get_request_by_standaz.repository.Repository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Response
 
@@ -20,8 +21,12 @@ class MainViewModel(private val repository: Repository): ViewModel() {
 
     fun pushPost(post: Post) {
         viewModelScope.launch {
-            val response = repository.pushPost(post)
-            myResponse.value = response
+           try {
+               val response = repository.pushPost(post)
+               if (response.isSuccessful){
+                   myResponse.value = response
+               }
+           }catch (ignored:Exception){}
         }
     }
 
@@ -45,10 +50,15 @@ class MainViewModel(private val repository: Repository): ViewModel() {
         }
     }
     fun getCustomPosts(userId: Int, sort: String, order: String) {
-        viewModelScope.launch {
-            val response = repository.getCustomPosts(userId, sort, order)
-            myCustomPosts.value = response
-        }
+
+        try {
+            viewModelScope.launch(Dispatchers.IO) {
+                val response = repository.getCustomPosts(userId, sort, order)
+                if (response.isSuccessful){
+                    myCustomPosts.value = response
+                }
+            }
+        }catch (ignored:Exception){}
     }
 
     fun getCustomPosts2(userId: Int, options: Map<String, String>) {

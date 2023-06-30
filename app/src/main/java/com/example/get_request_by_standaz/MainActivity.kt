@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.get_request_by_standaz.adapter.MyAdapter
 import com.example.get_request_by_standaz.repository.Repository
+import java.lang.Exception
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,21 +29,32 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        setupRecyclerview()
+        try {
+            setupRecyclerview()
+        }catch (ignored:Exception){}
 
-        val repository = Repository()
-        val viewModelFactory = MainViewModelFactory(repository)
-        viewModel = ViewModelProvider(this, viewModelFactory).get(MainViewModel::class.java)
 
-        viewModel.getCustomPosts(2, "id", "desc")
 
-        viewModel.myCustomPosts.observe(this, Observer { 
-            if (it.isSuccessful){
-                it.body()?.let { it1 -> myAdapter.setData(it1) }
-            }else{
-                Toast.makeText(applicationContext, "error..${it.errorBody().toString()}", Toast.LENGTH_SHORT).show()
-            }
-        })
+        try {
+            val repository = Repository()
+            val viewModelFactory = MainViewModelFactory(repository)
+            viewModel = ViewModelProvider(this, viewModelFactory).get(MainViewModel::class.java)
+
+            viewModel.getCustomPosts(2, "id", "desc")
+
+            viewModel.myCustomPosts.observe(this, Observer { response ->
+
+                try {
+
+                    if (response.isSuccessful){
+                        response.body()?.let { myAdapter.setData(it) }
+                    }
+
+                }catch (ignored:Exception){}
+
+            })
+        }catch (ignored:Exception){}
+
 
     }
 
